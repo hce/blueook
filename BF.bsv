@@ -150,7 +150,6 @@ module mkBF(TM);
 		       end
 	 BFInput     : begin
 			  ip[0] <= ip[0] + 1;
-			  ds.portA.request.put(rreq);
 			  currInstruction <= tagged Valid BFInput;
 		       end
       endcase
@@ -185,9 +184,25 @@ module mkBF(TM);
    rule handlePrint (simulationActive && currInstruction == tagged Valid BFPrint && !nextInstruction);
       let currValue <- ds.portA.response.get;
       $write("%c", currValue);
+      $fflush(stdout);
       currInstruction <= tagged Invalid;
       nextInstruction <= True;
    endrule   
+   
+   
+   rule handleInput (simulationActive && currInstruction == tagged Valid BFInput && !nextInstruction);
+      let newValue <- $fgetc(stdin);
+      
+      BRAMRequest#(UInt#(20), Int#(8)) wreq = defaultValue;
+      wreq.write = True;
+      wreq.responseOnWrite = False;
+      wreq.address = dc;
+      wreq.datain = truncate(newValue);
+      ds.portA.request.put(wreq);
+      
+      currInstruction <= tagged Invalid;
+      nextInstruction <= True;
+   endrule
 
    rule handleLoopBegin (simulationActive && currInstruction == tagged Valid BFLoopBegin && !nextInstruction && skipLoop == 0);
       let currValue <- ds.portA.response.get;
