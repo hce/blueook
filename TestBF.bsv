@@ -23,6 +23,9 @@ module mkTestBF(Empty);
       end else bf.inp(truncate(pack(c)));
    endrule
    
+   rule terminate (pos == 2 && !bf.simulationRunning);
+      $finish;
+   endrule
    
 endmodule
    

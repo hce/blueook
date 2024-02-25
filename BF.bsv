@@ -5,6 +5,7 @@ import Vector::*;
 interface TM;
    method Action inp(Bit#(8) b);
    method Action startSimulate;
+   method Bool simulationRunning;
 endinterface
 
 typedef enum { BFInc, BFDec, BFLeft, BFRight,
@@ -101,7 +102,9 @@ module mkBF(TM);
    endrule
    
    rule finish (simulationActive && nextInstruction && ip[0] >= programSize);
-      $finish;
+      simulationActive <= False;
+      ip[0] <= 0;
+      programSize <= 0;
    endrule
    
    rule simulate (simulationActive && nextInstruction && ip[0] < programSize);
@@ -220,4 +223,8 @@ module mkBF(TM);
       ip[1] <= 0;
       simulationActive <= True;
    endmethod
+   
+   method Bool simulationRunning;
+      return simulationActive;
+   endmethod: simulationRunning
 endmodule
